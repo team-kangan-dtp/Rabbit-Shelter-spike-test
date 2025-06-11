@@ -44,6 +44,7 @@
 		"zod": "^3.25.57"
 	},
 	"dependencies": {
+		"@supabase/supabase-js": "^2.50.0",
 		"mode-watcher": "^1.0.7"
 	}
 }

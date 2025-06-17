@@ -26,16 +26,23 @@
 	let editingAnimal: Animal | null = null;
 	let showCreateForm = false;
 
+	// Reactive statement to hide panel after successful actions
+	$: if (form?.success) {
+		editingAnimal = null;
+		showCreateForm = false;
+	}
+
+	// Check if panel should be visible
+	$: showPanel = showCreateForm || editingAnimal !== null;
+
 	// Handle edit from data table
 	function handleEdit(animal: Animal) {
-		console.log('🔧 Edit clicked for:', animal);
 		editingAnimal = { ...animal };
 		showCreateForm = false;
 	}
 
 	// Handle delete from data table
 	function handleDelete(animal: Animal) {
-		console.log('🗑️ Delete clicked for:', animal);
 		if (confirm(`Are you sure you want to delete ${animal.name}?`)) {
 			const form = document.createElement('form');
 			form.method = 'POST';
@@ -53,55 +60,30 @@
 	}
 
 	function handleCreate() {
-		console.log('➕ Create new animal clicked');
 		editingAnimal = null;
 		showCreateForm = true;
 	}
 
 	function handleCancel() {
-		console.log('❌ Cancel clicked');
 		editingAnimal = null;
 		showCreateForm = false;
 	}
 
 	// Add form submission handler for debugging
 	function handleFormSubmit(event: Event) {
-		console.log('📝 Form submitted:', event.target);
 		// Let the form submit naturally - don't prevent default
 	}
-
-	// Debug log for animals data
-	console.log('🐾 Animals data received in page:', data.animals);
 </script>
 
-<h1>Animals</h1>
-
-{#if data.error}
-	<p class="error">Error: {data.error}</p>
-{/if}
-
-<!-- Add error display -->
-{#if form?.error}
-	<p class="error">Error: {form.error}</p>
-{/if}
-
-{#if form?.success}
-	<p class="success">Animal created successfully!</p>
-{/if}
-
-<!-- Debug info -->
-<div class="mb-4 p-2 bg-gray-100 rounded text-sm">
-	<p>
-		Debug: showCreateForm = {showCreateForm}, editingAnimal = {editingAnimal
-			? editingAnimal.name
-			: 'null'}
-	</p>
-	<p>Animals count: {data.animals?.length || 0}</p>
+<!-- Styled Animals heading with better spacing -->
+<div class="p-3 space-y-1">
+	<h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">Animals</h1>
+	<p class="text-xl text-muted-foreground">Manage your animal shelter records</p>
 </div>
 
 <Resizable.PaneGroup direction="horizontal">
 	<Resizable.Pane class="w-full h-full p-3">
-		<!-- Add New Animal Button -->
+		<!-- Add New Animal Button with better spacing -->
 		<div class="mb-4">
 			<Button onclick={handleCreate}>
 				<Plus class="h-4 w-4 mr-2" />
@@ -157,141 +139,196 @@
 		</div>
 	</Resizable.Pane>
 
-	<Resizable.Pane class="p-3" style="width: 400px; min-width: 400px; max-width: 400px;">
-		<Card.Root class="w-full h-full p-2">
-			<Card.Header>
-				<Card.Title>
+	<!-- Only show the panel when an action is active -->
+	{#if showPanel}
+		<Resizable.Handle class="bg-transparent border-none" withHandle={false} />
+		<Resizable.Pane class="p-4" style="width: 400px; min-width: 400px; max-width: 400px;">
+			<Card.Root class="w-full h-full flex flex-col">
+				<Card.Header class="pb-0">
+					<Card.Title class="text-2xl font-semibold">
+						{#if showCreateForm}
+							Add New Animal
+						{:else if editingAnimal}
+							Edit Animal
+						{/if}
+					</Card.Title>
+				</Card.Header>
+				<Card.Content class="flex-1 flex flex-col pt-0">
 					{#if showCreateForm}
-						Add New Animal
+						<!-- CREATE FORM -->
+						<form
+							method="POST"
+							action="?/create"
+							class="flex flex-col h-full"
+							onsubmit={handleFormSubmit}
+						>
+							<div class="flex-1 space-y-4">
+								<div class="space-y-2">
+									<label for="name" class="text-sm font-medium leading-none">Name</label>
+									<Input type="text" name="name" id="name" required />
+								</div>
+								<div class="space-y-2">
+									<label for="species" class="text-sm font-medium leading-none">Species</label>
+									<Input type="text" name="species" id="species" required />
+								</div>
+								<div class="space-y-2">
+									<label for="breed" class="text-sm font-medium leading-none">Breed</label>
+									<Input type="text" name="breed" id="breed" />
+								</div>
+								<div class="space-y-2">
+									<label for="arrival_date" class="text-sm font-medium leading-none"
+										>Arrival Date</label
+									>
+									<Input type="date" name="arrival_date" id="arrival_date" required />
+								</div>
+								<div class="space-y-2">
+									<label for="adoption_status" class="text-sm font-medium leading-none"
+										>Status</label
+									>
+									<select
+										name="adoption_status"
+										id="adoption_status"
+										class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+									>
+										<option value="No">Available</option>
+										<option value="Reserved">Reserved</option>
+										<option value="Adopted">Adopted</option>
+									</select>
+								</div>
+								<div class="flex items-center space-x-2">
+									<input
+										type="checkbox"
+										name="neutered"
+										id="neutered"
+										class="h-4 w-4 rounded border border-input"
+									/>
+									<label for="neutered" class="text-sm font-medium leading-none">Neutered</label>
+								</div>
+							</div>
+							<div class="flex gap-2 pt-6 border-t mt-6">
+								<Button type="submit" class="flex-1">Create Animal</Button>
+								<Button type="button" variant="outline" onclick={handleCancel} class="flex-1"
+									>Cancel</Button
+								>
+							</div>
+						</form>
 					{:else if editingAnimal}
-						Edit Animal
-					{:else}
-						Animal Details
+						<!-- UPDATE FORM -->
+						<form method="POST" action="?/update" class="flex flex-col h-full">
+							<input type="hidden" name="animal_id" value={editingAnimal.animal_id} />
+							<div class="flex-1 space-y-4">
+								<div class="space-y-2">
+									<label for="edit_name" class="text-sm font-medium leading-none">Name</label>
+									<Input
+										type="text"
+										name="name"
+										id="edit_name"
+										value={editingAnimal.name}
+										required
+									/>
+								</div>
+								<div class="space-y-2">
+									<label for="edit_species" class="text-sm font-medium leading-none">Species</label>
+									<Input
+										type="text"
+										name="species"
+										id="edit_species"
+										value={editingAnimal.species}
+										required
+									/>
+								</div>
+								<div class="space-y-2">
+									<label for="edit_breed" class="text-sm font-medium leading-none">Breed</label>
+									<Input
+										type="text"
+										name="breed"
+										id="edit_breed"
+										value={editingAnimal.breed || ''}
+									/>
+								</div>
+								<div class="space-y-2">
+									<label for="edit_arrival_date" class="text-sm font-medium leading-none"
+										>Arrival Date</label
+									>
+									<Input
+										type="date"
+										name="arrival_date"
+										id="edit_arrival_date"
+										value={editingAnimal.arrival_date}
+										required
+									/>
+								</div>
+								<div class="space-y-2">
+									<label for="edit_adoption_status" class="text-sm font-medium leading-none"
+										>Status</label
+									>
+									<select
+										name="adoption_status"
+										id="edit_adoption_status"
+										class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+									>
+										<option value="No" selected={editingAnimal.adoption_status === 'No'}
+											>Available</option
+										>
+										<option value="Reserved" selected={editingAnimal.adoption_status === 'Reserved'}
+											>Reserved</option
+										>
+										<option value="Adopted" selected={editingAnimal.adoption_status === 'Adopted'}
+											>Adopted</option
+										>
+									</select>
+								</div>
+								<div class="flex items-center space-x-2">
+									<input
+										type="checkbox"
+										name="neutered"
+										id="edit_neutered"
+										class="h-4 w-4 rounded border border-input"
+										checked={editingAnimal.neutered}
+									/>
+									<label for="edit_neutered" class="text-sm font-medium leading-none"
+										>Neutered</label
+									>
+								</div>
+							</div>
+							<div class="flex gap-2 pt-6 border-t mt-6">
+								<Button type="submit" class="flex-1">Update Animal</Button>
+								<Button type="button" variant="outline" onclick={handleCancel} class="flex-1"
+									>Cancel</Button
+								>
+							</div>
+						</form>
 					{/if}
-				</Card.Title>
-			</Card.Header>
-			<Card.Content>
-				{#if showCreateForm}
-					<p class="mb-4 text-green-600">CREATE FORM IS SHOWING</p>
-					<!-- CREATE FORM -->
-					<form method="POST" action="?/create" class="space-y-4" onsubmit={handleFormSubmit}>
-						<div>
-							<label for="name" class="block text-sm font-medium mb-1">Name:</label>
-							<Input type="text" name="name" id="name" required />
-						</div>
-						<div>
-							<label for="species" class="block text-sm font-medium mb-1">Species:</label>
-							<Input type="text" name="species" id="species" required />
-						</div>
-						<div>
-							<label for="breed" class="block text-sm font-medium mb-1">Breed:</label>
-							<Input type="text" name="breed" id="breed" />
-						</div>
-						<div>
-							<label for="arrival_date" class="block text-sm font-medium mb-1">Arrival Date:</label>
-							<Input type="date" name="arrival_date" id="arrival_date" required />
-						</div>
-						<div>
-							<label for="adoption_status" class="block text-sm font-medium mb-1">Status:</label>
-							<select name="adoption_status" id="adoption_status" class="w-full p-2 border rounded">
-								<option value="No">Available</option>
-								<option value="Reserved">Reserved</option>
-								<option value="Adopted">Adopted</option>
-							</select>
-						</div>
-						<div>
-							<label class="flex items-center">
-								<input type="checkbox" name="neutered" id="neutered" class="mr-2" />
-								Neutered
-							</label>
-						</div>
-						<div class="flex gap-2">
-							<Button type="submit">Create Animal</Button>
-							<Button type="button" variant="outline" onclick={handleCancel}>Cancel</Button>
-						</div>
-					</form>
-				{:else if editingAnimal}
-					<p class="mb-4 text-blue-600">EDIT FORM IS SHOWING</p>
-					<!-- UPDATE FORM -->
-					<form method="POST" action="?/update" class="space-y-4">
-						<input type="hidden" name="animal_id" value={editingAnimal.animal_id} />
-						<div>
-							<label for="edit_name" class="block text-sm font-medium mb-1">Name:</label>
-							<Input type="text" name="name" id="edit_name" value={editingAnimal.name} required />
-						</div>
-						<div>
-							<label for="edit_species" class="block text-sm font-medium mb-1">Species:</label>
-							<Input
-								type="text"
-								name="species"
-								id="edit_species"
-								value={editingAnimal.species}
-								required
-							/>
-						</div>
-						<div>
-							<label for="edit_breed" class="block text-sm font-medium mb-1">Breed:</label>
-							<Input type="text" name="breed" id="edit_breed" value={editingAnimal.breed || ''} />
-						</div>
-						<div>
-							<label for="edit_arrival_date" class="block text-sm font-medium mb-1"
-								>Arrival Date:</label
-							>
-							<Input
-								type="date"
-								name="arrival_date"
-								id="edit_arrival_date"
-								value={editingAnimal.arrival_date}
-								required
-							/>
-						</div>
-						<div>
-							<label for="edit_adoption_status" class="block text-sm font-medium mb-1"
-								>Status:</label
-							>
-							<select
-								name="adoption_status"
-								id="edit_adoption_status"
-								class="w-full p-2 border rounded"
-							>
-								<option value="No" selected={editingAnimal.adoption_status === 'No'}
-									>Available</option
-								>
-								<option value="Reserved" selected={editingAnimal.adoption_status === 'Reserved'}
-									>Reserved</option
-								>
-								<option value="Adopted" selected={editingAnimal.adoption_status === 'Adopted'}
-									>Adopted</option
-								>
-							</select>
-						</div>
-						<div>
-							<label class="flex items-center">
-								<input
-									type="checkbox"
-									name="neutered"
-									id="edit_neutered"
-									class="mr-2"
-									checked={editingAnimal.neutered}
-								/>
-								Neutered
-							</label>
-						</div>
-						<div class="flex gap-2">
-							<Button type="submit">Update Animal</Button>
-							<Button type="button" variant="outline" onclick={handleCancel}>Cancel</Button>
-						</div>
-					</form>
-				{:else}
-					<p>Select an animal to view/edit details, or click "Add New Animal" to create one.</p>
-				{/if}
-			</Card.Content>
-		</Card.Root>
-	</Resizable.Pane>
+				</Card.Content>
+			</Card.Root>
+		</Resizable.Pane>
+	{/if}
 </Resizable.PaneGroup>
+
+<!-- Debug info - positioned in bottom left corner -->
+<div
+	class="fixed bottom-4 left-80 p-3 bg-background border rounded-lg shadow-lg text-xs max-w-xs z-50 opacity-80 hover:opacity-100 transition-opacity"
+>
+	<div class="font-semibold mb-2 text-muted-foreground">Debug Info</div>
+	<div class="space-y-1 text-muted-foreground">
+		<p>showCreateForm: <span class="text-foreground">{showCreateForm}</span></p>
+		<p>
+			editingAnimal: <span class="text-foreground"
+				>{editingAnimal ? editingAnimal.name : 'null'}</span
+			>
+		</p>
+		<p>Animals count: <span class="text-foreground">{data.animals?.length || 0}</span></p>
+		<p>Panel visible: <span class="text-foreground">{showPanel}</span></p>
+		<p>Form success: <span class="text-foreground">{form?.success || 'false'}</span></p>
+	</div>
+</div>
 
 <style>
 	.error {
 		color: red;
+	}
+
+	.success {
+		color: green;
 	}
 </style>

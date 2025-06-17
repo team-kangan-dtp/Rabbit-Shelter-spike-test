@@ -24,7 +24,7 @@
   <DropdownMenu.Group>
    <DropdownMenu.Label>User Actions</DropdownMenu.Label>
    <DropdownMenu.Item onclick={() => navigator.clipboard.writeText(id)}>
-    Copy users ID
+    Copy User ID
    </DropdownMenu.Item>
   </DropdownMenu.Group>
   <DropdownMenu.Separator />

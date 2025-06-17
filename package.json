@@ -17,7 +17,7 @@
 		"@dnd-kit-svelte/sortable": "^0.0.8",
 		"@dnd-kit-svelte/utilities": "^0.0.8",
 		"@internationalized/date": "^3.8.2",
-		"@lucide/svelte": "^0.513.0",
+		"@lucide/svelte": "^0.515.0",
 		"@sveltejs/adapter-auto": "^6.0.0",
 		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
@@ -26,7 +26,8 @@
 		"@tanstack/table-core": "^8.21.3",
 		"@types/d3-scale": "^4.0.9",
 		"@types/d3-shape": "^3.1.7",
-		"bits-ui": "^2.5.0",
+		"@types/date-fns": "^2.6.3",
+		"bits-ui": "^2.8.0",
 		"clsx": "^2.1.1",
 		"d3-scale": "^4.0.2",
 		"d3-shape": "^3.2.0",
@@ -45,6 +46,7 @@
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "^2.50.0",
+		"date-fns": "^4.1.0",
 		"mode-watcher": "^1.0.7"
 	}
 }

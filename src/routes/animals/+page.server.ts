@@ -1,6 +1,7 @@
 import { supabase } from "$lib/supabaseClient";
 import type { PageServerLoad, Actions } from "./$types";
 import { fail } from "@sveltejs/kit";
+import { randomUUID } from 'crypto'; // Add this import
 
 // READ - Load all animals with proper typing
 // PageServerLoad is a svelte kit type that mates the function run when page first loads
@@ -31,50 +32,64 @@ export const load: PageServerLoad = async () => {
 };
 
 // Actions are used to handle form submissions
-export const actions = {
+export const actions: Actions = {
 // CREATE - Add a new animal
 // This action action runs when a form is submitted with action="?/create"
 create: async ({ request }) => {
-  const data = await request.formData();
+  console.log("🚀🚀🚀 CREATE ACTION CALLED! 🚀🚀🚀");
+  
+  try {
+    const data = await request.formData();
+    
+    // Log all form data to see what we're receiving
+    console.log("📝 Form data received:");
+    for (let [key, value] of data.entries()) {
+      console.log(`  ${key}: ${value}`);
+    }
 
-  // New object withe data from the form fields 
-  const animalData = {
-    name: data.get('name') as string,
-    species: data.get('species') as string,
-    breed: data.get('breed') as string,
-    dob: data.get('dob') as string || null,
-    fur_colour: data.get('fur_colour') as string || null,
-    weight_kg: data.get('weight_kg') ? parseFloat(data.get('weight_kg') as string) : null,
-    arrival_date: data.get('arrival_date') as string || new Date().toISOString().split('T')[0],
-    neutered: data.get('neutered') === 'on',
-    adoption_status: data.get('adoption_status') as string || 'No',
-    bonded_with: data.get('bonded_with') as string || null
-  };
+    // New object with data from the form fields 
+    const animalData = {
+      animal_id: randomUUID(),
+      name: data.get('name') as string,
+      species: data.get('species') as string,
+      breed: data.get('breed') as string || null,
+      dob: data.get('dob') as string || null,
+      fur_colour: data.get('fur_colour') as string || null,
+      weight_kg: data.get('weight_kg') ? parseFloat(data.get('weight_kg') as string) : null,
+      arrival_date: data.get('arrival_date') as string || new Date().toISOString().split('T')[0],
+      neutered: data.get('neutered') === 'on',
+      adoption_status: data.get('adoption_status') as string || 'No',
+      bonded_with: data.get('bonded_with') as string || null
+    };
 
-  // Insert the new animal into the database
-  const { error } = await supabase
-  .from('animal')
-  .insert([animalData]);
+    console.log("💾 Animal data to insert:", animalData);
 
-  // If there is an error, log it and return a fail response
-  if ( error ) {
-    console.error('Create error:', error);
-    return fail(400, { error: error.message });
-  } 
+    // Insert the new animal into the database
+    const { data: insertedData, error } = await supabase
+      .from('animal')
+      .insert([animalData])
+      .select();
 
-  // If no errors, return a success response
-  return { success: true };
+    if (error) {
+      console.error('❌ Create error:', error);
+      return fail(400, { error: error.message });
+    } 
+
+    console.log("✅ Animal created successfully:", insertedData);
+    return { success: true };
+    
+  } catch (err) {
+    console.error('❌ Unexpected error in create action:', err);
+    return fail(500, { error: 'Unexpected error occurred' });
+  }
 },
 
 // UPDATE - Update an existing animal
-update: async ( { request }) => {
+update: async ({ request }) => {
+  console.log("🔄 UPDATE ACTION CALLED");
   const data = await request.formData();
-
-  // Get the animal ID to update
-  // Fix: Use 'animal_id' to match your form
   const id = data.get('animal_id') as string;
 
-  // Create object with updated animal data from form fields
   const animalData = {
     name: data.get('name') as string,
     species: data.get('species') as string,
@@ -88,43 +103,35 @@ update: async ( { request }) => {
     bonded_with: data.get('bonded_with') as string || null
   };
 
-  // Update the animal in the database
   const { error } = await supabase
-  .from('animal')
-  .update(animalData)
-  .eq('animal_id', id);
+    .from('animal')
+    .update(animalData)
+    .eq('animal_id', id);
 
-  // If there is an error, log it and return a fail response
-  if ( error ) {
+  if (error) {
     console.error('Update error:', error);
     return fail(400, { error: error.message });
   } 
 
-  // If no errors, return a success response
   return { success: true };
 },
 
 // DELETE - Delete an existing animal
-delete: async ( { request }) => {
+delete: async ({ request }) => {
+  console.log("🗑️ DELETE ACTION CALLED");
   const data = await request.formData();
-
-  // Get the animal ID to delete
-  // Fix: Use 'animal_id' to match your form
   const id = data.get('animal_id') as string;
 
-  // Delete the animal from the database
   const { error } = await supabase
-  .from('animal')
-  .delete()
-  .eq('animal_id', id);
+    .from('animal')
+    .delete()
+    .eq('animal_id', id);
 
-  // If there is an error, log it and return a fail response
-  if ( error ) {
+  if (error) {
     console.error('Delete error:', error);
     return fail(400, { error: error.message });
   } 
 
-  // If no errors, return a success response
   return { success: true };
 }
 }

@@ -21,7 +21,7 @@ export const load: PageServerLoad = async () => {
   }
   
   // If no errors return the data
-  console.log(data);
+  console.log("✅ Animal data from database:", data);
 
   return {
     animals: data ?? []
@@ -43,11 +43,11 @@ create: async ({ request }) => {
     species: data.get('species') as string,
     breed: data.get('breed') as string,
     dob: data.get('dob') as string || null,
-    fur_color: data.get('fur_color') as string || null,
-    weight_kg: data.get('weight_kg') as string || null,
-    arrival_date: data.get('arrival_date') as string,
+    fur_colour: data.get('fur_colour') as string || null,
+    weight_kg: data.get('weight_kg') ? parseFloat(data.get('weight_kg') as string) : null,
+    arrival_date: data.get('arrival_date') as string || new Date().toISOString().split('T')[0],
     neutered: data.get('neutered') === 'on',
-    adoption_status: data.get('adoption_status') as string,
+    adoption_status: data.get('adoption_status') as string || 'No',
     bonded_with: data.get('bonded_with') as string || null
   };
 
@@ -58,7 +58,7 @@ create: async ({ request }) => {
 
   // If there is an error, log it and return a fail response
   if ( error ) {
-    console.error('Supabase error:', error);
+    console.error('Create error:', error);
     return fail(400, { error: error.message });
   } 
 
@@ -71,7 +71,8 @@ update: async ( { request }) => {
   const data = await request.formData();
 
   // Get the animal ID to update
-  const id = data.get('id') as string;
+  // Fix: Use 'animal_id' to match your form
+  const id = data.get('animal_id') as string;
 
   // Create object with updated animal data from form fields
   const animalData = {
@@ -95,7 +96,7 @@ update: async ( { request }) => {
 
   // If there is an error, log it and return a fail response
   if ( error ) {
-    console.error('Supabase error:', error);
+    console.error('Update error:', error);
     return fail(400, { error: error.message });
   } 
 
@@ -108,7 +109,8 @@ delete: async ( { request }) => {
   const data = await request.formData();
 
   // Get the animal ID to delete
-  const id = data.get('id') as string;
+  // Fix: Use 'animal_id' to match your form
+  const id = data.get('animal_id') as string;
 
   // Delete the animal from the database
   const { error } = await supabase
@@ -118,7 +120,7 @@ delete: async ( { request }) => {
 
   // If there is an error, log it and return a fail response
   if ( error ) {
-    console.error('Supabase error:', error);
+    console.error('Delete error:', error);
     return fail(400, { error: error.message });
   } 
 

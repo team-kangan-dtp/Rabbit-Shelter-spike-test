@@ -48,8 +48,7 @@
 				url: '#',
 				icon: UsersIcon
 			},
-			{
-			}
+	
 		],
 		navClouds: [
 			{

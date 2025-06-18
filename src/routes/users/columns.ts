@@ -3,10 +3,16 @@ import { format } from "date-fns";
 import { renderComponent } from "$lib/components/ui/data-table/index.js";
 import UsersDataTableActions from "./users-data-table-actions.svelte";
 
+// Extend the User type to include the onEdit and onDelete callbacks
+type UserWithActions = User & {
+    onEdit?: (id: string) => void;
+    onDelete?: (id: string) => void;
+};
+
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<UserWithActions>[] = [
     {
         accessorKey: 'id',
         header: 'User ID',
@@ -54,8 +60,12 @@ export const columns: ColumnDef<User>[] = [
     {
         id: "actions",
         cell: ({ row }) => {
-        // You can pass whatever you need from `row.original` to the component
-        return renderComponent(UsersDataTableActions, { id: row.original.id });
+            const user = row.original;
+            return renderComponent(UsersDataTableActions, {
+                id: user.id,
+                onEdit: user.onEdit,
+                onDelete: user.onDelete
+            });
         }
     }   
 ];

@@ -3,7 +3,11 @@
  import { Button } from "$lib/components/ui/button/index.js";
  import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
  
- let { id }: { id: string } = $props();
+ let { id, onEdit, onDelete }: { 
+   id: string; 
+   onEdit?: (id: string) => void;
+   onDelete?: (id: string) => void;
+ } = $props();
 </script>
  
 <DropdownMenu.Root>
@@ -28,8 +32,14 @@
    </DropdownMenu.Item>
   </DropdownMenu.Group>
   <DropdownMenu.Separator />
-  <DropdownMenu.Item>View user</DropdownMenu.Item>
-  <DropdownMenu.Item>Edit user</DropdownMenu.Item>
-  <DropdownMenu.Item>Delete user</DropdownMenu.Item>
+  <DropdownMenu.Item><a href={`/users/${id}`}>View user</a></DropdownMenu.Item>
+  <DropdownMenu.Item onclick={() => onEdit?.(id)}>Edit user</DropdownMenu.Item>
+  <DropdownMenu.Separator />
+  <DropdownMenu.Item 
+    onclick={() => onDelete?.(id)}
+    class="text-red-600 focus:text-red-600 focus:bg-red-50"
+  >
+    Delete user
+  </DropdownMenu.Item>
  </DropdownMenu.Content>
 </DropdownMenu.Root>

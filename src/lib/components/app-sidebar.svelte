@@ -29,30 +29,26 @@
 		},
 		navMain: [
 			{
-				title: 'Dashboard',
-				url: '/dashboard-01',
+				title: 'Users',
+				url: '/users#',
 				icon: DashboardIcon
 			},
 			{
-				title: 'Lifecycle',
-				url: '#',
+				title: 'Shifts',
+				url: '/shifts#',
 				icon: ListDetailsIcon
 			},
 			{
-				title: 'Analytics',
-				url: '#',
+				title: 'Animals',
+				url: '/animals#',
 				icon: ChartBarIcon
-			},
-			{
-				title: 'Projects',
-				url: '#',
-				icon: FolderIcon
 			},
 			{
 				title: 'Team',
 				url: '#',
 				icon: UsersIcon
-			}
+			},
+	
 		],
 		navClouds: [
 			{
